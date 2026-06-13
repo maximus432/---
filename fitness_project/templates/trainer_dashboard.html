@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель инструктора | FitnessCore</title>
+    <!-- Подключаем Bootstrap 5 и иконки Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+
+    <!-- Верхняя навигационная панель -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <i class="bi bi-lightning-charge-fill text-warning me-2"></i>
+                <span class="fw-bold tracking-tight">FitnessCore <span class="fs-6 opacity-75">Панель тренера</span></span>
+            </a>
+            <div class="navbar-nav ms-auto align-items-center">
+                <div class="text-end me-3">
+                    <small class="text-white-50 d-block">Штатный инструктор</small>
+                    <span class="text-white fw-medium">{{ session['full_name'] }}</span>
+                </div>
+                <a class="btn btn-outline-light btn-sm d-flex align-items-center gap-1" href="{{ url_for('logout') }}">
+                    <i class="bi bi-box-arrow-right"></i> Выйти
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid p-4">
+        
+        <!-- Блок уведомлений (всплывающие сообщения) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Аналитическая мини-метрика -->
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm bg-white">
+                    <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-success-subtle text-success p-3 rounded-circle fs-3">
+                                <i class="bi bi-calendar-check"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Ваша рабочая нагрузка</h5>
+                                <p class="text-muted small mb-0">Всего запланировано занятий под вашим руководством</p>
+                            </div>
+                        </div>
+                        <h2 class="fw-bold text-success mb-0 pe-3">{{ workouts|length }} сес.</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            
+            <!-- Левая колонка: Форма добавления занятия -->
+            <div class="col-xl-4 col-lg-5">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="card-title mb-0 fw-bold text-dark">
+                            <i class="bi bi-plus-circle-fill text-success me-2"></i>Добавить тренировку
+                        </h5>
+                    </div>
+                    <div class="card-body pt-0">
+                        <form action="{{ url_for('add_workout') }}" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Название / Направление</label>
+                                <input type="text" class="form-control form-control-sm" name="title" placeholder="например, Кроссфит или Йога" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Дата проведения</label>
+                                <input type="date" class="form-control form-control-sm" name="workout_date" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Время начала</label>
+                                <input type="time" class="form-control form-control-sm" name="workout_time" required>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm w-100 fw-bold py-2 shadow-sm">
+                                <i class="bi bi-calendar-plus me-1"></i> Опубликовать в расписание
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка: Мой график / Список занятий -->
+            <div class="col-xl-8 col-lg-7">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-dark text-white border-0 py-3">
+                        <h5 class="card-title mb-0 fw-bold">
+                            <i class="bi bi-clock-history text-warning me-2"></i>Мой персональный график занятий
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light border-0">
+                                    <tr>
+                                        <th class="ps-4">ID</th>
+                                        <th>Название тренировки</th>
+                                        <th>Дата проведения</th>
+                                        <th class="pe-4">Время занятия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for workout in workouts %}
+                                    <tr>
+                                        <td class="ps-4 text-muted fw-bold">#{{ workout['id'] }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-success-subtle text-success rounded px-2 py-1 me-2 small">
+                                                    <i class="bi bi-lightning-fill"></i>
+                                                </div>
+                                                <span class="fw-bold text-dark">{{ workout['title'] }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="text-secondary"><i class="bi bi-calendar-event me-1"></i>{{ workout['workout_date'] }}</span>
+                                        </td>
+                                        <td class="pe-4">
+                                            <span class="badge bg-dark px-3 py-2 fw-medium shadow-sm">{{ workout['workout_time'] }}</span>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-5">
+                                            <div class="fs-2 mb-2 text-muted"><i class="bi bi-emoji-neutral"></i></div>
+                                            <span>Вы еще не добавили ни одного занятия в общее расписание.</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
